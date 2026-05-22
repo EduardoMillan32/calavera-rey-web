@@ -13,7 +13,10 @@ if (!nombreUsuario || !idSala) {
 const salaRef = ref(db, `calavera_rey/salas/${idSala}`);
 const miRef = ref(db, `calavera_rey/salas/${idSala}/jugadores/${nombreUsuario}`);
 
-onDisconnect(miRef).remove();
+// BUG D FIX: solo eliminar al jugador en desconexión si está en el lobby (esperando).
+// Durante la partida, solo marcar como desconectado para no destruir su mano/puntos.
+// La lógica de reconexión se maneja al volver a cargar jugador.html.
+onDisconnect(miRef).update({ conectado: false });
 
 const iconWait = `<i data-lucide="clock" style="vertical-align: middle; width: 1.2em; height: 1.2em;"></i>`;
 
@@ -418,7 +421,9 @@ onValue(salaRef, (snapshot) => {
 
         if (!dataGlobal.tieneTableroTV) {
             const todosApostaron = jugadoresArray.every(j => j.apuesta !== -1);
-            if (todosApostaron && isHost) {
+            // UX FIX: cualquier jugador puede detonar la transición (no solo el host),
+            // así si el host pierde internet en fase de apuestas la partida no se congela.
+            if (todosApostaron) {
                 update(salaRef, { estado: 'jugando' });
             }
         }

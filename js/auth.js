@@ -1,8 +1,13 @@
 import { db } from './firebase-config.js';
 import { ref, set, get, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
+// BUG B FIX: limpiar caracteres prohibidos por Firebase Realtime Database (. # $ [ ])
+function limpiarNombre(str) {
+    return str.replace(/[.#$\[\]]/g, '').trim();
+}
+
 document.getElementById('btnTV').onclick = async () => {
-    const sala = document.getElementById('idSala').value.trim().toLowerCase();
+    const sala = limpiarNombre(document.getElementById('idSala').value.trim().toLowerCase());
     if (!sala) return alert("¡Ponle nombre al barco, marinero!");
 
     const salaRef = ref(db, `calavera_rey/salas/${sala}`);
@@ -19,9 +24,9 @@ document.getElementById('btnTV').onclick = async () => {
 };
 
 document.getElementById('btnJugador').onclick = async () => {
-    const sala = document.getElementById('idSala').value.trim().toLowerCase();
-    const nombre = document.getElementById('nombreUsuario').value.trim();
-    
+    const sala = limpiarNombre(document.getElementById('idSala').value.trim().toLowerCase());
+    const nombre = limpiarNombre(document.getElementById('nombreUsuario').value.trim());
+
     if (!sala || !nombre) return alert("¡Necesitamos tu nombre y el del barco!");
 
     const salaRef = ref(db, `calavera_rey/salas/${sala}`);
@@ -32,7 +37,7 @@ document.getElementById('btnJugador').onclick = async () => {
             return alert("¡El barco ya zarpó lleno! Máximo 8 marineros por partida.");
         }
     }
-    
+
     // Asignar Capitán si no existe
     if (!snapshot.exists()) {
         await set(salaRef, { estado: 'esperando', ronda: 1, tieneTableroTV: false, host: nombre });
@@ -43,11 +48,11 @@ document.getElementById('btnJugador').onclick = async () => {
     const jugadorRef = ref(db, `calavera_rey/salas/${sala}/jugadores/${nombre}`);
     await set(jugadorRef, {
         nombre: nombre,
-        apuesta: -1, 
+        apuesta: -1,
         bazasGanadas: 0,
         puntos: 0,
         mano: [],
-        listo: false // Entra sin estar listo
+        listo: false
     });
 
     sessionStorage.setItem('idSala', sala);

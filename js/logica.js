@@ -1,5 +1,5 @@
 import { db } from './firebase-config.js';
-import { ref, get, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { ref, get, update, runTransaction } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 function barajar(mazo) {
     for (let i = mazo.length - 1; i > 0; i--) {
@@ -37,14 +37,19 @@ export async function iniciarRonda(idSala) {
     const data = snapshot.val();
     if (!data || !data.jugadores) return;
 
-    const mazo = generarMazoCalavera();
-    // BUG 12 FIX: usar orden_jugadores guardado, o el orden actual como fallback
+    const mazo = generarMazoCalavera(); // 72 cartas
     const nombresJugadores = data.orden_jugadores || Object.keys(data.jugadores);
     const rondaActual = data.ronda || 1;
+    const numJugadores = nombresJugadores.length;
+
+    // BUG A FIX: calcular cuántas cartas se pueden repartir sin quedarse sin mazo
+    // El mazo tiene 72 cartas. Si rondaActual * numJugadores > 72, reducir a lo que alcance.
+    const cartasPorJugador = Math.min(rondaActual, Math.floor(72 / numJugadores));
+
     let actualizaciones = {};
 
     nombresJugadores.forEach(nombre => {
-        actualizaciones[`jugadores/${nombre}/mano`] = mazo.splice(0, rondaActual);
+        actualizaciones[`jugadores/${nombre}/mano`] = mazo.splice(0, cartasPorJugador);
         actualizaciones[`jugadores/${nombre}/apuesta`] = -1;
         actualizaciones[`jugadores/${nombre}/bazasGanadas`] = 0;
         actualizaciones[`jugadores/${nombre}/bonos_temp`] = 0;
@@ -59,7 +64,6 @@ export async function iniciarRonda(idSala) {
     actualizaciones['repartidor_index'] = primerJugadorIndex;
     actualizaciones['baza_actual'] = [];
     actualizaciones['ultimo_ganador'] = null;
-    // BUG 12 FIX: guardar el orden de jugadores si aún no existe
     if (!data.orden_jugadores) {
         actualizaciones['orden_jugadores'] = Object.keys(data.jugadores);
     }
@@ -118,7 +122,6 @@ function evaluarBaza(baza) {
 
     const cartasColor = baza.filter(c => c.tipo === 'numero');
     if (cartasColor.length === 0) {
-        // BUG 14: todos jugaron huida/especial sin ganador → gana el primero
         return { ganador: baza[0].jugadoPor, bazaDestruida: false };
     }
 
@@ -128,7 +131,6 @@ function evaluarBaza(baza) {
         return { ganador: triunfos[0].jugadoPor, bazaDestruida: false };
     }
 
-    // BUG 13 FIX: buscar la primera carta numérica (no la primera carta de la baza)
     const primeraNumerica = baza.find(c => c.tipo === 'numero');
     const colorLider = primeraNumerica.color;
     const cartasLider = cartasColor.filter(c => c.color === colorLider);
@@ -139,19 +141,25 @@ function evaluarBaza(baza) {
 function calcularBonificaciones(baza, ganador) {
     let bonus = 0;
     const skullKing = baza.find(c => c.tipo === 'skullking');
-    const sirena = baza.find(c => c.tipo === 'sirena');
-    const pirata = baza.find(c => c.tipo === 'pirata');
+    const sirenas = baza.filter(c => c.tipo === 'sirena');   // BUG C FIX: filter
+    const piratas = baza.filter(c => c.tipo === 'pirata');   // BUG C FIX: filter
 
-    if (skullKing && sirena && ganador === sirena.jugadoPor) {
-        bonus += 40;
-    }
-    if (pirata && skullKing && ganador === skullKing.jugadoPor) {
-        bonus += 30;
-    }
-    if (sirena && pirata && ganador === pirata.jugadoPor) {
-        bonus += 20;
+    // Sirena captura Skull King: +40 pts (por cada sirena que haya)
+    if (skullKing && sirenas.length > 0 && ganador === sirenas[0].jugadoPor) {
+        bonus += 40 * sirenas.length;
     }
 
+    // Skull King captura piratas: +30 pts por CADA pirata capturado
+    if (piratas.length > 0 && skullKing && ganador === skullKing.jugadoPor) {
+        bonus += 30 * piratas.length;
+    }
+
+    // Pirata captura sirenas: +20 pts por CADA sirena capturada
+    if (sirenas.length > 0 && piratas.length > 0 && ganador === piratas[0].jugadoPor) {
+        bonus += 20 * sirenas.length;
+    }
+
+    // 14 de color en baza ganada
     baza.forEach(c => {
         if (c.tipo === 'numero' && c.valor === 14) {
             bonus += c.color === 'negro' ? 20 : 10;
@@ -163,10 +171,21 @@ function calcularBonificaciones(baza, ganador) {
 
 export async function procesarFinDeBaza(idSala, baza, dataGlobal) {
     const salaRef = ref(db, `calavera_rey/salas/${idSala}`);
+    const procesandoRef = ref(db, `calavera_rey/salas/${idSala}/procesando_baza`);
 
-    const snapGuarda = await get(salaRef);
-    if (snapGuarda.val()?.procesando_baza) return;
-    await update(salaRef, { procesando_baza: true });
+    // BUG E FIX: usar runTransaction para evitar condición de carrera (TOCTOU)
+    // Solo el primer cliente que llegue podrá cambiar procesando_baza de null a true
+    let fueElegido = false;
+    await runTransaction(procesandoRef, (valorActual) => {
+        if (valorActual) {
+            // Ya está siendo procesado por otro cliente — abortar
+            return; // retornar undefined cancela la transacción sin cambios
+        }
+        fueElegido = true;
+        return true; // marcar como procesando
+    });
+
+    if (!fueElegido) return; // otro cliente ganó la carrera
 
     await new Promise(r => setTimeout(r, 3000));
 
@@ -190,7 +209,6 @@ export async function procesarFinDeBaza(idSala, baza, dataGlobal) {
     actualizaciones['ultimo_ganador'] = ganador;
     actualizaciones['turno_actual'] = ganador;
 
-    // BUG 12 FIX: usar orden_jugadores
     const nombresJugadores = dataFinal.orden_jugadores || Object.keys(dataFinal.jugadores);
     let quedanCartas = false;
 
@@ -203,7 +221,6 @@ export async function procesarFinDeBaza(idSala, baza, dataGlobal) {
     if (!quedanCartas) {
         const rondaActual = dataFinal.ronda;
 
-        // BUG 1 FIX: preparar historial de la ronda
         const historialRonda = {
             ronda: rondaActual,
             resultados: {}
@@ -237,7 +254,6 @@ export async function procesarFinDeBaza(idSala, baza, dataGlobal) {
 
             const totalAcumulado = (j.puntos || 0) + puntosRonda;
 
-            // BUG 1 FIX: guardar resultado individual en el historial
             historialRonda.resultados[n] = {
                 apuesta: apuesta,
                 bazasGanadas: bazasFinales,
@@ -251,7 +267,6 @@ export async function procesarFinDeBaza(idSala, baza, dataGlobal) {
             actualizaciones[`jugadores/${n}/listo_siguiente`] = false;
         });
 
-        // BUG 1 FIX: guardar historial en Firebase
         actualizaciones[`historial/ronda_${rondaActual}`] = historialRonda;
 
         const maxRondas = dataFinal.max_rondas || 10;
