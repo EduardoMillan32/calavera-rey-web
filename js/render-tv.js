@@ -1,5 +1,5 @@
 import { db } from './firebase-config.js';
-import { ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { ref, onValue, update, onDisconnect } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 import { iniciarRonda } from './logica.js';
 
 const idSala = sessionStorage.getItem('idSala');
@@ -26,6 +26,12 @@ if (!idSala) {
 }
 
 const salaRef = ref(db, `calavera_rey/salas/${idSala}`);
+
+// Si la TV se cierra o pierde conexión, los celulares cambian automáticamente a "Modo sin TV"
+onDisconnect(salaRef).update({ tieneTableroTV: false });
+
+// Marcar que hay TV activa al cargar
+update(salaRef, { tieneTableroTV: true });
 
 // ─── BOTONES MODALES ──────────────────────────────────────────────────────────
 
