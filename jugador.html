@@ -180,6 +180,9 @@
     <button id="btn-puntos-flotante" style="display:none; position:fixed; bottom:20px; right:20px; z-index:200; background:var(--gold); color:black; border:none; border-radius:50%; width:52px; height:52px; cursor:pointer; box-shadow: 0 4px 15px rgba(212,175,55,0.5); align-items:center; justify-content:center;">
         <i data-lucide="trophy" style="width:1.4em; height:1.4em;"></i>
     </button>
+
+    <!-- Botón "Forzar turno" — solo visible para el Host cuando el jugador en turno está desconectado -->
+    <button id="btn-forzar-turno" style="display:none; position:fixed; bottom:84px; right:16px; z-index:200; background:#ff8c00; color:black; border:none; border-radius:12px; padding:10px 14px; font-size:0.8rem; font-weight:bold; cursor:pointer; box-shadow:0 4px 15px rgba(255,140,0,0.5); max-width:200px; text-align:center; line-height:1.3;"></button>
     
     <script type="module" src="js/render-jugador.js"></script>
     <script>lucide.createIcons();</script>

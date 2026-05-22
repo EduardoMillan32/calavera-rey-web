@@ -31,7 +31,9 @@ export function generarMazoCalavera() {
     return barajar(mazo);
 }
 
-export async function iniciarRonda(idSala) {
+// BUG C FIX: aceptar rondaOverride para evitar leer la ronda vieja de Firebase
+// cuando hay micro-latencia entre el update(ronda+1) y el get() interno.
+export async function iniciarRonda(idSala, rondaOverride = null) {
     const salaRef = ref(db, `calavera_rey/salas/${idSala}`);
     const snapshot = await get(salaRef);
     const data = snapshot.val();
@@ -39,7 +41,8 @@ export async function iniciarRonda(idSala) {
 
     const mazo = generarMazoCalavera(); // 72 cartas
     const nombresJugadores = data.orden_jugadores || Object.keys(data.jugadores);
-    const rondaActual = data.ronda || 1;
+    // Usar el valor pasado directamente si existe, para no depender de la lectura de Firebase
+    const rondaActual = rondaOverride ?? data.ronda ?? 1;
     const numJugadores = nombresJugadores.length;
 
     // BUG A FIX: calcular cuántas cartas se pueden repartir sin quedarse sin mazo

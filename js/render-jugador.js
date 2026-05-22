@@ -459,6 +459,29 @@ onValue(salaRef, (snapshot) => {
             topbar.style.borderColor = 'var(--gold-dim)';
             topbar.style.boxShadow = '';
         }
+
+        // BUG A FIX: botón "Forzar turno" para el host cuando el jugador en turno
+        // está desconectado y la partida se congela esperándolo.
+        const btnForzar = document.getElementById('btn-forzar-turno');
+        if (isHost && dataGlobal.turno_actual !== nombreUsuario) {
+            const jugadorEnTurno = dataGlobal.jugadores[dataGlobal.turno_actual];
+            const estaDesconectado = jugadorEnTurno && jugadorEnTurno.conectado === false;
+            if (estaDesconectado && btnForzar) {
+                btnForzar.style.display = 'block';
+                btnForzar.innerText = `⚡ Forzar turno de ${dataGlobal.turno_actual}`;
+                btnForzar.onclick = async () => {
+                    const ordenJugadores = dataGlobal.orden_jugadores || Object.keys(dataGlobal.jugadores);
+                    const idxActual = ordenJugadores.indexOf(dataGlobal.turno_actual);
+                    const siguiente = ordenJugadores[(idxActual + 1) % ordenJugadores.length];
+                    await update(salaRef, { turno_actual: siguiente });
+                    mostrarToast(`Turno pasado a ${siguiente}`, 'warning');
+                };
+            } else if (btnForzar) {
+                btnForzar.style.display = 'none';
+            }
+        } else if (btnForzar) {
+            btnForzar.style.display = 'none';
+        }
     }
 
     // ── ESTADO: FIN DE RONDA ──
@@ -509,10 +532,13 @@ onValue(salaRef, (snapshot) => {
             if (faltan.length === 0) {
                 btnZarparSiguiente.disabled = false;
                 btnZarparSiguiente.style.background = 'var(--gold)';
-                btnZarparSiguiente.innerText = 'INICIAR RONDA ' + (dataGlobal.ronda + 1);
+                const siguienteRonda = dataGlobal.ronda + 1;
+                btnZarparSiguiente.innerText = 'INICIAR RONDA ' + siguienteRonda;
                 btnZarparSiguiente.onclick = async () => {
-                    await update(salaRef, { ronda: dataGlobal.ronda + 1 });
-                    iniciarRonda(idSala);
+                    // BUG C FIX: pasar la ronda directamente a iniciarRonda para evitar
+                    // que un get() interno lea la ronda vieja por micro-latencia de Firebase.
+                    await update(salaRef, { ronda: siguienteRonda });
+                    iniciarRonda(idSala, siguienteRonda);
                 };
             } else {
                 btnZarparSiguiente.disabled = true;
@@ -682,11 +708,14 @@ function renderizarMesaCelular(baza) {
 
     baza.forEach(carta => {
         const divCarta = document.createElement('div');
-        divCarta.className = `carta-pirata mini-carta ${obtenerClaseCSS(carta)}`;
+        // BUG B FIX: si es Tigresa mutada, usar clase visual de tigresa (no pirata/huida)
+        const claseVisual = carta.esTigresa ? 'especial-tigresa' : obtenerClaseCSS(carta);
+        divCarta.className = `carta-pirata mini-carta ${claseVisual}`;
         divCarta.style.transform = `rotate(${Math.random() * 10 - 5}deg)`;
 
-        const textoEsquina = obtenerTextoEsquina(carta);
-        const iconoCentro = carta.tipo === 'numero' ? iconos[carta.color] : iconos[carta.tipo];
+        // BUG B FIX: mostrar icono y texto de Tigresa aunque el tipo sea pirata/huida
+        const textoEsquina = carta.esTigresa ? 'T' : obtenerTextoEsquina(carta);
+        const iconoCentro = carta.esTigresa ? iconos['tigresa'] : (carta.tipo === 'numero' ? iconos[carta.color] : iconos[carta.tipo]);
 
         divCarta.innerHTML = `
             <div class="carta-esquina">${textoEsquina}</div>
@@ -724,7 +753,7 @@ async function tirarCarta(carta, index) {
         }
     }
 
-    // Tigresa: elegir modo
+    // Tigresa: elegir modo — BUG B FIX: guardar esTigresa:true para render visual correcto
     let cartaJugada;
     if (carta.tipo === 'tigresa') {
         const esPirata = await mostrarConfirm(
@@ -732,7 +761,7 @@ async function tirarCarta(carta, index) {
             '🐱 Como Pirata',
             '🏳️ Como Huida'
         );
-        cartaJugada = { ...carta, tipo: esPirata ? 'pirata' : 'huida', jugadoPor: nombreUsuario };
+        cartaJugada = { ...carta, tipo: esPirata ? 'pirata' : 'huida', esTigresa: true, jugadoPor: nombreUsuario };
     } else {
         cartaJugada = { ...carta, jugadoPor: nombreUsuario };
     }

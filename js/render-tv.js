@@ -199,11 +199,14 @@ onValue(salaRef, (snapshot) => {
         } else {
             baza.forEach(carta => {
                 const divCarta = document.createElement('div');
-                divCarta.className = `carta-pirata ${obtenerClaseCSS(carta)}`;
+                // BUG B FIX: si es Tigresa mutada, usar clase visual de tigresa (no pirata/huida)
+                const claseVisual = carta.esTigresa ? 'especial-tigresa' : obtenerClaseCSS(carta);
+                divCarta.className = `carta-pirata ${claseVisual}`;
                 divCarta.style.margin = '0 10px';
 
-                const textoEsquina = obtenerTextoEsquina(carta);
-                const iconoCentro = carta.tipo === 'numero' ? iconos[carta.color] : iconos[carta.tipo];
+                // BUG B FIX: mostrar icono y texto de Tigresa aunque el tipo sea pirata/huida
+                const textoEsquina = carta.esTigresa ? 'T' : obtenerTextoEsquina(carta);
+                const iconoCentro = carta.esTigresa ? iconos['tigresa'] : (carta.tipo === 'numero' ? iconos[carta.color] : iconos[carta.tipo]);
 
                 divCarta.innerHTML = `
                     <div class="carta-esquina">${textoEsquina}</div>
