@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tablero - Calavera Rey</title>
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/tv.css">
+    <link rel="stylesheet" href="css/cartas.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="tv-body">
+    <div class="tv-layout">
+        <header class="tv-header">
+            <h2 style="display: flex; align-items: center; gap: 10px;">
+                <i data-lucide="anchor"></i>
+                Barco: <strong id="nombre-sala" style="color: var(--gold);">---</strong>
+            </h2>
+            <h1>RONDA <span id="ronda-actual">1</span></h1>
+            <div style="display:flex; gap:10px; align-items:center;">
+                <button id="btn-historial-tv" class="btn-tv-accion">
+                    <i data-lucide="bar-chart-2" style="width:1em; height:1em; vertical-align:middle;"></i>
+                    Historial
+                </button>
+                <button id="btn-reglas-tv" class="btn-tv-accion">
+                    <i data-lucide="book-open" style="width:1em; height:1em; vertical-align:middle;"></i>
+                    Reglas
+                </button>
+            </div>
+        </header>
+
+        <main class="tv-mesa" id="mesa-centro">
+            <div class="mensaje-estado" id="mensaje-estado">Esperando a la tripulación...</div>
+        </main>
+
+        <footer class="tv-jugadores" id="lista-jugadores"></footer>
+    </div>
+
+    <!-- MODAL: HISTORIAL DE RONDAS (TV) -->
+    <div id="modal-historial-tv" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.88); z-index:1000; justify-content:center; align-items:center;">
+        <div style="background:var(--ocean-light); border:2px solid var(--gold); border-radius:1.5rem; padding:2rem; max-width:92%; max-height:85vh; overflow-y:auto; min-width:320px;">
+            <h2 style="color:var(--gold); margin-bottom:1.2rem; text-align:center; font-family:'Georgia',serif; display:flex; align-items:center; justify-content:center; gap:10px;">
+                <i data-lucide="bar-chart-2"></i> Historial de Rondas
+            </h2>
+            <div id="tabla-historial-tv" style="overflow-x:auto;"></div>
+            <button id="btn-cerrar-historial-tv" class="btn-gold" style="margin-top:1.5rem; width:100%;">Cerrar</button>
+        </div>
+    </div>
+
+    <!-- MODAL: REGLAS DEL JUEGO (TV) -->
+    <div id="modal-reglas-tv" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.88); z-index:1000; justify-content:center; align-items:center;">
+        <div style="background:var(--ocean-light); border:2px solid var(--gold); border-radius:1.5rem; padding:2rem; max-width:700px; width:92%; max-height:85vh; overflow-y:auto; text-align:left;">
+            <h2 style="text-align:center; margin-bottom:1rem; font-family:'Georgia',serif; color:var(--gold);"><i data-lucide="book-open" style="width:1.1em; height:1.1em; vertical-align:middle;"></i> Reglas del Juego</h2>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem;">
+                <div>
+                    <h3 style="color:var(--gold); margin-bottom:0.5rem;"><i data-lucide="layers" style="width:1em; height:1em; vertical-align:middle;"></i> Cartas de Color (1-14)</h3>
+                    <p style="color:#aabbcc; line-height:1.6; font-size:0.9rem;">4 colores: <strong style="color:#4caf50;">Verde</strong>, <strong style="color:#ffc107;">Amarillo</strong>, <strong style="color:#9c27b0;">Morado</strong> y <strong style="color:white;">Negro (triunfo)</strong>. El Negro supera a todos los demás colores.</p>
+                    <p style="color:#aabbcc; line-height:1.6; font-size:0.9rem; margin-top:0.5rem;">Debes <strong style="color:var(--gold);">servir al color</strong> de la primera carta numérica jugada si tienes ese color.</p>
+
+                    <h3 style="color:var(--gold); margin:1rem 0 0.5rem;"><i data-lucide="coins" style="width:1em; height:1em; vertical-align:middle;"></i> Puntuación</h3>
+                    <ul style="padding-left:1.2rem; line-height:2; color:#aabbcc; font-size:0.85rem;">
+                        <li><strong style="color:#00ffaa;">Apuesta correcta (1+):</strong> +20 pts × bazas</li>
+                        <li><strong style="color:#00ffaa;">Apuesta correcta (0):</strong> +10 pts × ronda</li>
+                        <li><strong style="color:#ff4444;">Apuesta incorrecta (1+):</strong> -10 pts × diferencia</li>
+                        <li><strong style="color:#ff4444;">Apuesta incorrecta (0):</strong> -10 pts × ronda</li>
+                    </ul>
+
+                    <h3 style="color:var(--gold); margin:1rem 0 0.5rem;"><i data-lucide="list-ordered" style="width:1em; height:1em; vertical-align:middle;"></i> Jerarquía</h3>
+                    <p style="color:#aabbcc; font-size:0.85rem; background:rgba(0,0,0,0.3); padding:8px; border-radius:8px; border-left:3px solid var(--gold);">
+                        Sirena &gt; Skull King &gt; Pirata &gt; Negro &gt; Color líder &gt; Otros &gt; Huida
+                    </p>
+                </div>
+                <div>
+                    <h3 style="color:var(--gold); margin-bottom:0.5rem;"><i data-lucide="swords" style="width:1em; height:1em; vertical-align:middle;"></i> Cartas Especiales</h3>
+                    <ul style="padding-left:1.2rem; line-height:2; color:#aabbcc; font-size:0.85rem;">
+                        <li><strong style="color:white;">Huida (5):</strong> Pierde contra todo.</li>
+                        <li><strong style="color:white;">Pirata (5):</strong> Gana a números. Gana el primero jugado.</li>
+                        <li><strong style="color:white;">Tigresa (1):</strong> Elige: Pirata o Huida.</li>
+                        <li><strong style="color:white;">Skull King (1):</strong> Gana a piratas. Pierde ante sirenas.</li>
+                        <li><strong style="color:white;">Sirena (2):</strong> Gana al SK. Pierde ante piratas.</li>
+                        <li><strong style="color:white;">Kraken (1):</strong> Destruye la baza. Nadie gana.</li>
+                        <li><strong style="color:white;">Ballena (1):</strong> Solo cuentan números. Gana el más alto.</li>
+                    </ul>
+
+                    <h3 style="color:var(--gold); margin:1rem 0 0.5rem;"><i data-lucide="star" style="width:1em; height:1em; vertical-align:middle;"></i> Bonificaciones</h3>
+                    <ul style="padding-left:1.2rem; line-height:2; color:#aabbcc; font-size:0.85rem;">
+                        <li>14 normal en baza ganada: <strong style="color:var(--gold);">+10</strong></li>
+                        <li>14 negro en baza ganada: <strong style="color:var(--gold);">+20</strong></li>
+                        <li>Pirata captura Sirena: <strong style="color:var(--gold);">+20</strong></li>
+                        <li>SK captura Pirata: <strong style="color:var(--gold);">+30</strong></li>
+                        <li>Sirena captura SK: <strong style="color:var(--gold);">+40</strong></li>
+                    </ul>
+                </div>
+            </div>
+
+            <button id="btn-cerrar-reglas-tv" class="btn-gold" style="margin-top:1.5rem; width:100%;">¡Entendido, a navegar!</button>
+        </div>
+    </div>
+
+    <script type="module" src="js/render-tv.js"></script>
+    <script>lucide.createIcons();</script>
+</body>
+</html>

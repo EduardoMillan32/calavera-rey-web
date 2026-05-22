@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calavera Rey - Ingreso</title>
+    <link rel="stylesheet" href="css/global.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <div class="contenedor-premium">
+        <h1 class="titulo-pirata">CALAVERA REY</h1>
+        <p class="subtitulo">Solo los audaces ganan</p>
+        
+        <input type="text" id="idSala" placeholder="Nombre del Barco (Sala)" autocomplete="off">
+        
+        <div class="separador">
+            <i data-lucide="swords" style="color: var(--gold-dim);"></i>
+        </div>
+        
+        <div class="seccion-rol">
+            <h3>Tablero Principal</h3>
+            <p class="info-texto">Para ver la mesa y puntos en TV/PC.</p>
+            <button id="btnTV" class="btn-outline">Crear Tablero (TV)</button>
+        </div>
+
+        <div class="separador">
+            <i data-lucide="anchor" style="color: var(--gold-dim);"></i>
+        </div>
+        
+        <div class="seccion-rol">
+            <h3>Tripulación</h3>
+            <input type="text" id="nombreUsuario" placeholder="Tu Nombre Pirata" autocomplete="off">
+            <button id="btnJugador" class="btn-gold">Unirse al Juego</button>
+        </div>
+    </div>
+
+    <script type="module" src="js/auth.js"></script>
+    <script>lucide.createIcons();</script>
+</body>
+</html>

@@ -1,0 +1,133 @@
+/* =========================================
+   DISEÑO PREMIUM DE LAS CARTAS
+   ========================================= */
+
+.carta-pirata {
+    width: clamp(70px, 18vw, 95px); /* Tamaño fluido en celular */
+    aspect-ratio: 2 / 3; /* Proporción clásica de un naipe */
+    border-radius: 8px;
+    background: #1a1a1a;
+    border: 2px solid var(--gold-dim);
+    box-shadow: -5px 0 15px rgba(0,0,0,0.8), inset 0 0 10px rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 8px;
+    
+    /* Leve solapamiento para efecto de mano */
+    margin-left: -8px;
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), z-index 0s;
+    cursor: pointer;
+    position: relative;
+    user-select: none;
+}
+
+.carta-pirata:first-child { margin-left: 0; }
+
+.carta-pirata:hover, .carta-pirata:focus {
+    transform: translateY(-25px) scale(1.1);
+    z-index: 100;
+    box-shadow: 0 15px 30px rgba(0,0,0,0.9), 0 0 15px rgba(212, 175, 55, 0.4);
+    border-color: var(--gold);
+}
+
+/* Esquinas de la carta (Valor) */
+.carta-esquina {
+    font-size: 1.2rem;
+    font-weight: 900;
+    font-family: 'Georgia', serif;
+    line-height: 1;
+}
+
+.carta-esquina.invertida {
+    transform: rotate(180deg);
+    align-self: flex-end;
+}
+
+/* Centro de la carta (Icono/Ilustración) */
+.carta-centro {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex: 1;
+}
+
+.carta-centro i {
+    width: 2.5rem;
+    height: 2.5rem;
+    opacity: 0.8;
+}
+
+/* =========================================
+   COLORES POR TIPO DE CARTA
+   ========================================= */
+/* Colors numéricos */
+.color-verde { 
+    background: linear-gradient(135deg, #113322, #0a1f14); 
+    color: #44ff88; 
+    border-color: #228844; 
+}
+
+.color-amarillo { 
+    background: linear-gradient(135deg, #443300, #221a00); 
+    color: #ffdd44; 
+    border-color: #aa8822; 
+}
+
+.color-morado { 
+    background: linear-gradient(135deg, #221133, #140a1f); 
+    color: #cc88ff; 
+    border-color: #7744aa; 
+}
+
+.color-negro { 
+    background: linear-gradient(135deg, #2a2a2a, #000000); 
+    color: white; 
+    border-color: #555; 
+} 
+/* Triunfo */
+
+/* Cartas Especiales */
+.especial-pirata { 
+    background: linear-gradient(135deg, #550000, #220000); 
+    color: #ff5555; 
+    border-color: #aa2222; 
+}
+
+.especial-sirena { 
+    background: linear-gradient(135deg, #004455, #001a22); 
+    color: #44ccff; 
+    border-color: #2288aa; 
+}
+
+.especial-huida { 
+    background: linear-gradient(135deg, #444, #222); 
+    color: #aaa; 
+    border-style: dashed; 
+}
+
+.especial-skullking { 
+    background: linear-gradient(135deg, #000, #111); 
+    color: var(--gold); 
+    border-color: var(--gold); 
+    box-shadow: inset 0 0 15px rgba(212, 175, 55, 0.4); 
+}
+
+/* Leviatanes (Expansión) */
+.especial-kraken { 
+    background: linear-gradient(135deg, #880044, #330011); 
+    color: #ff4488; 
+    border-color: #ff4488; 
+}
+
+.especial-ballena { 
+    background: linear-gradient(135deg, #eef, #aab); 
+    color: #112; 
+    border-color: #fff; 
+}
+
+.especial-tigresa {
+    background: linear-gradient(135deg, #3d1a00, #1a0a00);
+    color: #ff8c00;
+    border-color: #ff6600;
+}

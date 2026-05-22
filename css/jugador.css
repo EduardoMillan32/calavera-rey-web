@@ -1,0 +1,247 @@
+/* =========================================
+   ESTILOS PARA EL CELULAR DEL JUGADOR
+   ========================================= */
+
+body.jugador-body {
+    padding: 0;
+    align-items: flex-start;
+}
+
+.jugador-layout {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100vw;
+    position: relative;
+    padding: 1rem;
+}
+
+.jugador-topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--glass-bg);
+    border: 1px solid var(--gold-dim);
+    padding: 0.8rem 1rem;
+    border-radius: 1rem;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    z-index: 10;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.stats-rapidos {
+    font-size: 0.9rem;
+    color: #aabbcc;
+}
+
+.stats-rapidos strong {
+    color: var(--gold);
+    font-size: 1.1rem;
+}
+
+.modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.8);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+}
+
+.modal-apuestas {
+    background: var(--ocean-light);
+    border: 2px solid var(--gold);
+    padding: 2rem;
+    border-radius: 1.5rem;
+    text-align: center;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 0 50px rgba(212, 175, 55, 0.2);
+}
+
+.modal-apuestas h2 {
+    color: var(--parchment);
+    font-family: 'Georgia', serif;
+    margin-bottom: 1.5rem;
+}
+
+.grid-apuestas {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
+
+.btn-apuesta {
+    background: rgba(0,0,0,0.5);
+    border: 1px solid var(--gold-dim);
+    color: white;
+    font-size: 1.5rem;
+    padding: 15px 0;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-apuesta:hover,
+.btn-apuesta:active {
+    background: var(--gold);
+    color: black;
+    transform: scale(1.05);
+}
+
+.area-mano {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    padding-bottom: 2rem;
+    padding-top: 2rem;
+    overflow: visible;
+}
+
+/* =========================================
+   MINI MESA (CUANDO NO HAY TV) Y PUNTOS
+   ========================================= */
+
+.mini-mesa {
+    flex: 0 0 35vh;
+    min-height: 120px;
+    margin: 15px 0;
+    border-radius: 10px;
+    padding: 10px;
+    background: rgba(0,0,0,0.4);
+    border: 1px dashed var(--gold-dim);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.mini-mesa-centro {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.carta-pirata.mini-carta {
+    width: 50px;
+    height: 75px;
+    margin-left: -20px;
+    padding: 4px;
+    cursor: default;
+}
+
+.carta-pirata.mini-carta:first-child {
+    margin-left: 0;
+}
+
+.carta-pirata.mini-carta:hover {
+    transform: none;
+    box-shadow: -5px 0 15px rgba(0,0,0,0.8);
+}
+
+.carta-pirata.mini-carta .carta-centro i {
+    width: 1.2rem;
+    height: 1.2rem;
+}
+
+.carta-pirata.mini-carta .carta-esquina {
+    font-size: 0.8rem;
+}
+
+.puntuacion-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    border-bottom: 1px solid var(--gold-dim);
+    font-size: 1.1rem;
+}
+
+.btn-rondas {
+    background: rgba(0,0,0,0.5);
+    border: 2px solid var(--gold-dim);
+    color: #aabbcc;
+    font-size: 1rem;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+    flex: 1;
+}
+
+.btn-rondas:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+}
+
+.btn-rondas.activo {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: black;
+}
+
+.preview-carta-mini {
+    width: 40px;
+    height: 60px;
+    border-radius: 6px;
+    border: 1px solid var(--gold-dim);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 4px;
+    font-size: 0.65rem;
+    font-weight: bold;
+    font-family: 'Georgia', serif;
+    cursor: default;
+    flex-shrink: 0;
+    margin-left: 0 !important;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+}
+
+.preview-carta-mini .carta-centro i {
+    width: 0.9rem;
+    height: 0.9rem;
+}
+
+.preview-carta-mini:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 14px rgba(0,0,0,0.7);
+}
+
+/* =========================================
+   PESTAÑAS DEL HISTORIAL (BUG 3 / MEJORA 20)
+   ========================================= */
+
+.btn-tab {
+    flex: 1;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid var(--gold-dim);
+    color: #aabbcc;
+    padding: 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.btn-tab:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+}
+
+.btn-tab.activo {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: black;
+    font-weight: bold;
+}
